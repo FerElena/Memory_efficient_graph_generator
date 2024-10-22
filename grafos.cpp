@@ -13,7 +13,7 @@ typedef struct edge
 { // struct to represent edges
 	unsigned int vortex_index;
 	unsigned int edge_weight;
-	struct edge *next; //edges are supposed to go from lower vortex indexes, to higher vortex indexes
+	struct edge *next; // edges are supposed to go from lower vortex indexes, to higher vortex indexes
 } edge;
 
 typedef struct vortex
@@ -30,19 +30,17 @@ public:
 	~list_graph();					  // destructor
 
 	void print_vortexnumber();
-	void generate_random_edges(unsigned int cp_probability); // probability in percentage (from 0 to 100) of the graph to be convex
-	void print_graph_edges();				 // function to print the current graph edges in a simple console format
-	void find_reachable_nodes(int *ptr,unsigned int base_node); // finds reachable nodes in the graphic, from the base node, ptr is an initialized to -1 array, 0 means reachable
-	void search_shortest_path_djakstra(unsigned int base_vortex,unsigned int goal_vortex);
+	void generate_random_edges(unsigned int cp_probability);     // probability in percentage (from 0 to 100) of the graph to be convex
+	void print_graph_edges();				     // function to print the current graph edges in a simple console format
+	void find_reachable_nodes(int *ptr, unsigned int base_node); // finds reachable nodes in the graphic, from the base node, ptr is an initialized to -1 array, 0 means reachable
+	void search_shortest_path_djakstra(unsigned int base_vortex, unsigned int goal_vortex);
 
 private:
 	string graph_name;
 	int vortex_number;
 	vortex *graph_head;
 
-
 	void add_edge_private(vortex &Vortex, unsigned int vortex_index_to, unsigned int edge_weight);
-	
 };
 
 // Constructor implementation
@@ -122,29 +120,6 @@ void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, 
 	}
 }
 
-void list_graph::find_reachable_nodes(int *ptr,unsigned int base_node){
-	if(ptr[base_node] == -1) // if node is still not reached, setup as reached node
-		ptr[base_node] = 0;
-	else
-		return;
-
-	vortex *current_vortex = this->graph_head;
-	edge *current_edge;
-	for(int i = 0 ; i <= base_node ; ++i){
-		current_edge = current_vortex->edge_ptr;
-		while(current_edge != nullptr){
-			if(ptr[current_edge->vortex_index] == -1){
-				find_reachable_nodes(ptr,current_edge->vortex_index);
-			}
-			if(ptr[current_vortex->vortex_index] == -1){
-				find_reachable_nodes(ptr,current_vortex->vortex_index);
-			}
-			current_edge = current_edge->next;
-		}
-		current_vortex = current_vortex->next;
-	}
-}
-
 // Generates random edges on the graph
 void list_graph::generate_random_edges(unsigned int cp_probability)
 {
@@ -185,16 +160,42 @@ void list_graph::print_graph_edges()
 	}
 }
 
+void list_graph::find_reachable_nodes(int *ptr, unsigned int base_node) // finds the reachable nodes from a base node in the current graph, expects an array initialized with -1
+{
+	if (ptr[base_node] == -1) // if node is still not reached, setup as reached node
+		ptr[base_node] = 0;
+	else
+		return;
 
-void list_graph::search_shortest_path_djakstra(unsigned int base_vortex,unsigned int goal_vortex){
-	int *visited_vortexs = new int[this->vortex_number]; // currently visited vortexs,0 means not visited, -1 means not reachable from base node
-	for(int i = 0 ; i < this->vortex_number; visited_vortexs[i++] = -1); //setup all vortex to not reachable intially
-	int *distance_frombase = new int[this->vortex_number]; // distance to vortex from base vortex
-	distance_frombase[base_vortex] = 0; // distance from base to base is obviusly 0
-
-
+	vortex *current_vortex = this->graph_head;
+	edge *current_edge;
+	for (int i = 0; i <= base_node; ++i)
+	{
+		current_edge = current_vortex->edge_ptr;
+		while (current_edge != nullptr)
+		{
+			if (ptr[current_edge->vortex_index] == -1 && ptr[current_vortex->vortex_index] == 0)
+			{
+				find_reachable_nodes(ptr, current_edge->vortex_index);
+			}
+			if (ptr[current_edge->vortex_index] == 0 && ptr[current_vortex->vortex_index] == -1)
+			{
+				find_reachable_nodes(ptr, current_vortex->vortex_index);
+			}
+			current_edge = current_edge->next;
+		}
+		current_vortex = current_vortex->next;
+	}
 }
 
+void list_graph::search_shortest_path_djakstra(unsigned int base_vortex, unsigned int goal_vortex)
+{
+	int *visited_vortexs = new int[this->vortex_number]; // currently visited vortexs,0 means not visited, -1 means not reachable from base node
+	for (int i = 0; i < this->vortex_number; visited_vortexs[i++] = -1)
+		;					       // setup all vortex to not reachable intially
+	int *distance_frombase = new int[this->vortex_number]; // distance to vortex from base vortex
+	distance_frombase[base_vortex] = 0;		       // distance from base to base is obviusly 0
+}
 
 int main()
 {
@@ -202,13 +203,16 @@ int main()
 	const int graph_size = 8;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
-	migrafo.generate_random_edges(20);
+	migrafo.generate_random_edges(15);
 	migrafo.print_graph_edges();
 	int *ptr = new int[graph_size];
-	for(int i = 0 ; i < graph_size ;ptr[i++] = -1);
-	migrafo.find_reachable_nodes(ptr,0);
-	for(int i = 0 ; i < graph_size ; i++){
-		if(ptr[i] == -1){
+	for (int i = 0; i < graph_size; ptr[i++] = -1)
+		;
+	migrafo.find_reachable_nodes(ptr, 0);
+	for (int i = 0; i < graph_size; i++)
+	{
+		if (ptr[i] == -1)
+		{
 			cout << "el nodo :" << i << " no es accesible\n";
 		}
 	}
