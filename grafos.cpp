@@ -101,26 +101,49 @@ void list_graph::print_vortexnumber()
 	     << this->vortex_number << endl;
 }
 
-// Private method to add an edge to a vertex (unmodified version)
 void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, unsigned int edge_weight)
 {
-	edge *current_edge;
-	if (Vortex.edge_ptr == nullptr)
-	{
-		Vortex.edge_ptr = new edge;
-		Vortex.edge_ptr->vortex_index = vortex_index_to;
-		Vortex.edge_ptr->edge_weight = edge_weight;
-		Vortex.edge_ptr->next = nullptr;
-	}
-	else
-	{
-		current_edge = Vortex.edge_ptr;
-		Vortex.edge_ptr = new edge;
-		Vortex.edge_ptr->vortex_index = vortex_index_to;
-		Vortex.edge_ptr->edge_weight = edge_weight;
-		Vortex.edge_ptr->next = current_edge;
-	}
+    // Ensure that Vortex is the vertex with the lower index
+    unsigned int from_index = Vortex.vortex_index;
+    unsigned int to_index = vortex_index_to;
+
+    // Create a new edge
+    edge *new_edge = new edge;
+    new_edge->vortex_index = to_index;
+    new_edge->edge_weight = edge_weight;
+    new_edge->next = nullptr;
+
+    // If the vertex has no edges, simply add the new edge
+    if (Vortex.edge_ptr == nullptr)
+    {
+        Vortex.edge_ptr = new_edge;
+    }
+    else
+    {
+        edge *current_edge = Vortex.edge_ptr;
+        edge *previous_edge = nullptr;
+
+        // Find the correct position to insert the new edge
+        while (current_edge != nullptr && current_edge->vortex_index < to_index)
+        {
+            previous_edge = current_edge;
+            current_edge = current_edge->next;
+        }
+
+        // Insertion into the list
+        if (previous_edge == nullptr) // Inserting at the beginning
+        {
+            new_edge->next = Vortex.edge_ptr;
+            Vortex.edge_ptr = new_edge;
+        }
+        else // Inserting between existing edges
+        {
+            new_edge->next = current_edge;
+            previous_edge->next = new_edge;
+        }
+    }
 }
+
 
 void list_graph::reachable_nodes(int *ptr, unsigned int base_node) // finds the reachable nodes from a base node in the current graph, expects an array initialized with -1
 {
@@ -182,7 +205,7 @@ void list_graph::print_graph_edges()
 		{
 			if (iterator_edge != nullptr)
 			{
-				cout << "Edge from " << i << " to " << iterator_edge->vortex_index << " with weight: " << iterator_edge->edge_weight << endl;
+				cout << "Edge between " << i << " and " << iterator_edge->vortex_index << " with weight: " << iterator_edge->edge_weight << endl;
 				iterator_edge = iterator_edge->next;
 			}
 		} while (iterator_edge != nullptr);
@@ -215,7 +238,7 @@ int main()
 	migrafo.print_vortexnumber();
 	migrafo.generate_random_edges(15);
 	migrafo.print_graph_edges();
-	int *ptr = migrafo.get_unreachable_nodes(0);
+	int *ptr = migrafo.get_unreachable_nodes(7);
 	
 	for (int i = 0; i < graph_size; i++)
 	{
