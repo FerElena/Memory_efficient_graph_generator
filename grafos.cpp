@@ -94,12 +94,7 @@ list_graph::~list_graph()
 	}
 }
 
-// Prints the number of vertices in the graph
-void list_graph::print_vortexnumber()
-{
-	cout << "El número de vértices del grafo " << this->graph_name << " es "
-	     << this->vortex_number << endl;
-}
+//////////////////////////////////////PRIVATE METHODS////////////////////////////////////////////////////////////////
 
 void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, unsigned int edge_weight)
 {
@@ -172,6 +167,14 @@ void list_graph::reachable_nodes(int *ptr, unsigned int base_node) // finds the 
 		current_vortex = current_vortex->next;
 	}
 }
+//////////////////////////////////////PUBLIC METHODS////////////////////////////////////////////////////////////////
+
+// Prints the number of vertices in the graph
+void list_graph::print_vortexnumber()
+{
+	cout << "El número de vértices del grafo " << this->graph_name << " es "
+	     << this->vortex_number << endl;
+}
 
 // Generates random edges on the graph
 void list_graph::generate_random_edges(unsigned int cp_probability)
@@ -213,32 +216,30 @@ void list_graph::print_graph_edges()
 	}
 }
 
-int *list_graph::get_unreachable_nodes(int base_node){ // returns an array of size this->vortex_number with 0 on reachable nodes, and -1on unreachable from base_node
+int *list_graph::get_unreachable_nodes(int base_vortex){ // returns an array of size this->vortex_number with 0 on reachable nodes, and -1on unreachable from base_node
 	int *ptr = new int[this->vortex_number];
 	for (int i = 0; i < vortex_number; ptr[i++] = -1)
 		;
-	reachable_nodes(ptr, base_node);
+	reachable_nodes(ptr, base_vortex);
 	return ptr;
 }
 
 void list_graph::search_shortest_path_djakstra(unsigned int base_vortex, unsigned int goal_vortex)
 {
-	int *visited_vortexs = new int[this->vortex_number]; // currently visited vortexs,0 means not visited, -1 means not reachable from base node
-	for (int i = 0; i < this->vortex_number; visited_vortexs[i++] = -1)
-		;					       // setup all vortex to not reachable intially
-	int *distance_frombase = new int[this->vortex_number]; // distance to vortex from base vortex
-	distance_frombase[base_vortex] = 0;		       // distance from base to base is obviusly 0
+	int *visitable_vortexs = get_unreachable_nodes(base_vortex);// put reachable nodes from base vortex to 0, and unreachable nodes to -1, reserved on heap memory
+	int *distance_frombase = new int[this->vortex_number];      // distance to vortex from base vortex
+	distance_frombase[base_vortex] = 0;		            // distance from base to base is obviusly 0
 }
 
 int main()
 {
 	cout << "Here goes my C++ graph program! \n";
-	const int graph_size = 8;
+	const int graph_size = 200;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
-	migrafo.generate_random_edges(15);
+	migrafo.generate_random_edges(1);
 	migrafo.print_graph_edges();
-	int *ptr = migrafo.get_unreachable_nodes(7);
+	int *ptr = migrafo.get_unreachable_nodes(0);
 	
 	for (int i = 0; i < graph_size; i++)
 	{
