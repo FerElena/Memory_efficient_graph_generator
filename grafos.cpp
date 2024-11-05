@@ -6,9 +6,10 @@
 
 using namespace std;
 
-// the idea of this program is make a graph generator, and a dijkstra algorithm
+// the idea of this program is make a graph generator, and a dijkstra algorithm path finder
 // on the generated graph, the graph is implemented via a linked list, where
 // only the existing edges are represented
+// author is: Fernando Elena Benavente , the purpose of this code is simply learn C++ in a fun way, as the same time I make usefull code
 
 typedef struct edge
 { // struct to represent edges
@@ -98,7 +99,8 @@ list_graph::~list_graph()
 
 //////////////////////////////////////PRIVATE METHODS////////////////////////////////////////////////////////////////
 
-void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, unsigned int edge_weight)
+// ads an edge between 2 vortexs with a weight
+void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, unsigned int edge_weight) 
 {
 	// Ensure that Vortex is the vertex with the lower index
 	unsigned int from_index = Vortex.vortex_index;
@@ -141,7 +143,8 @@ void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, 
 	}
 }
 
-void list_graph::full_reachable_vortexs(int *ptr, unsigned int base_node) // finds the reachable nodes from a base node in the current graph, expects an array initialized with -1
+// finds the reachable nodes from a base node in the current graph, expects an array initialized with -1
+void list_graph::full_reachable_vortexs(int *ptr, unsigned int base_node) 
 {
 	if (ptr[base_node] == -1) // if node is still not reached, setup as reached node
 		ptr[base_node] = 0;
@@ -169,8 +172,10 @@ void list_graph::full_reachable_vortexs(int *ptr, unsigned int base_node) // fin
 	}
 }
 
-void list_graph::reach_vortex(unsigned int current_node,unsigned int current_distance_frombase, int *distance_array) // receives a current node, the distance to that node from base, an and array of distances
-{												    // the distance array is suposed to be initialized already , with -1 representing infinite
+// receives a current node, the distance to that node from base, an and array of distances
+// the distance array is suposed to be initialized already , with -1 representing infinite
+void list_graph::reach_vortex(unsigned int current_node,unsigned int current_distance_frombase, int *distance_array) 
+{												   
 	vortex *current_vortex = this->graph_head;
 	edge *current_edge;
 	for (int i = 0; i <= current_node; i++)
@@ -198,7 +203,8 @@ void list_graph::reach_vortex(unsigned int current_node,unsigned int current_dis
 	}
 }
 
-int list_graph::check_all_vortex_visited(int *visited_vortex){
+// checks if every vortex is visted, from an already initiatied vortex array 
+int list_graph::check_all_vortex_visited(int *visited_vortex){ 
 	for(int i = 0; i < this->vortex_number ; i++){
 		if(visited_vortex[i] == 0){
 			return 0;
@@ -212,7 +218,7 @@ int list_graph::check_all_vortex_visited(int *visited_vortex){
 // Prints the number of vertices in the graph
 void list_graph::print_vortexnumber()
 {
-	cout << "El número de vértices del grafo " << this->graph_name << " es "
+	cout << "number of graph vortexs " << this->graph_name << " is "
 	     << this->vortex_number << endl;
 }
 
@@ -256,8 +262,9 @@ void list_graph::print_graph_edges()
 	}
 }
 
-int *list_graph::get_full_reachable_vortexs(int base_vortex)
-{ // returns an array of size this->vortex_number with 0 on reachable nodes, and -1on unreachable from base_node
+// returns an array of size this->vortex_number with 0 on reachable nodes, and -1on unreachable from base_node
+int *list_graph::get_full_reachable_vortexs(int base_vortex) 
+{ 
 	int *ptr = new int[this->vortex_number];
 	for (int i = 0; i < vortex_number; ptr[i++] = -1)
 		;
@@ -265,6 +272,7 @@ int *list_graph::get_full_reachable_vortexs(int base_vortex)
 	return ptr;
 }
 
+//searchs the shortest distance between to vortex using dijkstra algorithm, returns -1 if goal vortex is unreachable
 int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsigned int goal_vortex)
 {
 	int *visitable_vortexs = get_full_reachable_vortexs(base_vortex); // put reachable nodes from base vortex to 0, and unreachable nodes to -1, reserved on heap memory
@@ -293,6 +301,7 @@ int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsi
 	return current_lower_distance;
 }
 
+//trivial testing main
 int main()
 {
 	cout << "Here goes my C++ graph program! \n";
@@ -307,12 +316,12 @@ int main()
 	{
 		if (ptr[i] == -1)
 		{
-			cout << "el nodo :" << i << " no es accesible\n";
+			cout << "vortex :" << i << " not accesible\n";
 		}
 	}
 
 	int distance = migrafo.search_shortest_distance_djakstra(0,5);
 	
-	cout << "la distancia entre el nodo base y el destino es : " << distance << endl;
+	cout << "distance between base vortex and goal vortex is : " << distance << endl;
 	return 0;
 }
