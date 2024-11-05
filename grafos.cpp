@@ -278,6 +278,7 @@ int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsi
 	int *visitable_vortexs = get_full_reachable_vortexs(base_vortex); // put reachable nodes from base vortex to 0, and unreachable nodes to -1, reserved on heap memory
 	if (visitable_vortexs[goal_vortex] == -1)
 	{
+		delete visitable_vortexs;
 		return -1; // goal vortex not reachable from base vortex, so we return error code
 	}
 	int *distance_frombase = new int[this->vortex_number];		      // distance to vortex from base vortex
@@ -298,17 +299,19 @@ int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsi
 		}
 	}
 	current_lower_distance = distance_frombase[goal_vortex];
+	delete visitable_vortexs;
+	delete distance_frombase;
 	return current_lower_distance;
 }
 
-//trivial testing main
+//trivial testing main, atm just stupid machine
 int main()
 {
 	cout << "Here goes my C++ graph program! \n";
-	const int graph_size = 6;
+	const int graph_size = 100;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
-	migrafo.generate_random_edges(50);
+	migrafo.generate_random_edges(2);
 	migrafo.print_graph_edges();
 	int *ptr = migrafo.get_full_reachable_vortexs(0);
 
@@ -320,7 +323,7 @@ int main()
 		}
 	}
 
-	int distance = migrafo.search_shortest_distance_djakstra(0,5);
+	int distance = migrafo.search_shortest_distance_djakstra(0,80);
 	
 	cout << "distance between base vortex and goal vortex is : " << distance << endl;
 	return 0;
