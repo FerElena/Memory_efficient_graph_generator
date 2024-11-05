@@ -303,8 +303,8 @@ int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsi
 		}
 	}
 	current_lower_distance = distance_frombase[goal_vortex];
-	delete visitable_vortexs;
-	delete distance_frombase;
+	delete[] visitable_vortexs;
+	delete[] distance_frombase;
 	return current_lower_distance;
 }
 
