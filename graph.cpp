@@ -120,8 +120,6 @@ void list_graph::remove_edge_private(vortex &Vortex, unsigned int vortex_index_t
 	delete current_edge;
 }
 
-
-
 // finds the reachable nodes from a base node in the current graph, expects an array initialized with -1, uses backtracking algorithm
 void list_graph::full_reachable_vortexs(int *ptr, unsigned int base_node)
 {
@@ -225,82 +223,96 @@ void list_graph::print_graph_edges()
 }
 
 // Function to add a vortex (vertex) to the graph in a sorted order
-int list_graph::add_vortex(unsigned int vortex_index) {
-    // Check if the vertex already exists
-    vortex* temp = graph_head;
-    while (temp != nullptr) {
-        if (temp->vortex_index == vortex_index) {
-            return -1;  // Vertex already exists
-        }
-        temp = temp->next;
-    }
+int list_graph::add_vortex(unsigned int vortex_index)
+{
+	// Check if the vertex already exists
+	vortex *temp = graph_head;
+	while (temp != nullptr)
+	{
+		if (temp->vortex_index == vortex_index)
+		{
+			return -1; // Vertex already exists
+		}
+		temp = temp->next;
+	}
 
-    // Create a new vertex
-    vortex* new_vortex = new vortex;
-    new_vortex->vortex_index = vortex_index;
-    new_vortex->edge_ptr = nullptr;
-    
-    // If the list is empty, set the new vortex as the head
-    if (graph_head == nullptr || graph_head->vortex_index > vortex_index) {
-        new_vortex->next = graph_head;
-        graph_head = new_vortex;
-    } else {
-        // Traverse the list and insert the new vortex in the correct sorted position
-        vortex* current = graph_head;
-        while (current->next != nullptr && current->next->vortex_index < vortex_index) {
-            current = current->next;
-        }
-        new_vortex->next = current->next;
-        current->next = new_vortex;
-    }
+	// Create a new vertex
+	vortex *new_vortex = new vortex;
+	new_vortex->vortex_index = vortex_index;
+	new_vortex->edge_ptr = nullptr;
 
-    vortex_number++;  // Increment the vortex count
-    return 0;  // Vertex added successfully
+	// If the list is empty, set the new vortex as the head
+	if (graph_head == nullptr || graph_head->vortex_index > vortex_index)
+	{
+		new_vortex->next = graph_head;
+		graph_head = new_vortex;
+	}
+	else
+	{
+		// Traverse the list and insert the new vortex in the correct sorted position
+		vortex *current = graph_head;
+		while (current->next != nullptr && current->next->vortex_index < vortex_index)
+		{
+			current = current->next;
+		}
+		new_vortex->next = current->next;
+		current->next = new_vortex;
+	}
+
+	vortex_number++; // Increment the vortex count
+	return 0;	 // Vertex added successfully
 }
 
 // Function to remove a vortex (vertex) from the graph
-int list_graph::remove_vortex(unsigned int vortex_index) {
-    vortex* current = graph_head;
-    vortex* previous = nullptr;
+int list_graph::remove_vortex(unsigned int vortex_index)
+{
+	vortex *current = graph_head;
+	vortex *previous = nullptr;
 
-    // Traverse the list to find the vortex to remove
-    while (current != nullptr && current->vortex_index != vortex_index) {
-        previous = current;
-        current = current->next;
-    }
+	// Traverse the list to find the vortex to remove
+	while (current != nullptr && current->vortex_index != vortex_index)
+	{
+		previous = current;
+		current = current->next;
+	}
 
-    // If the vortex is not found, return an error
-    if (current == nullptr) {
-        return -1;  // Vertex does not exist
-    }
+	// If the vortex is not found, return an error
+	if (current == nullptr)
+	{
+		return -1; // Vertex does not exist
+	}
 
-    // Remove all edges associated with this vortex
-    while (current->edge_ptr != nullptr) {
-        edge* temp_edge = current->edge_ptr;
-        current->edge_ptr = current->edge_ptr->next;
-        delete temp_edge;
-    }
+	// Remove all edges associated with this vortex
+	while (current->edge_ptr != nullptr)
+	{
+		edge *temp_edge = current->edge_ptr;
+		current->edge_ptr = current->edge_ptr->next;
+		delete temp_edge;
+	}
 
-    // Remove any edges that point to this vortex
-    vortex* temp = graph_head;
-    while (temp != nullptr) {
-        remove_edge_private(*temp, vortex_index);  // Remove edges from other vertices
-        temp = temp->next;
-    }
+	// Remove any edges that point to this vortex
+	vortex *temp = graph_head;
+	while (temp != nullptr)
+	{
+		remove_edge_private(*temp, vortex_index); // Remove edges from other vertices
+		temp = temp->next;
+	}
 
-    // Remove the vortex itself
-    if (previous == nullptr) {
-        // If the vortex to remove is the head of the list
-        graph_head = current->next;
-    } else {
-        previous->next = current->next;
-    }
+	// Remove the vortex itself
+	if (previous == nullptr)
+	{
+		// If the vortex to remove is the head of the list
+		graph_head = current->next;
+	}
+	else
+	{
+		previous->next = current->next;
+	}
 
-    delete current;
-    vortex_number--;  // Decrease the vortex count
-    return 0;  // Vertex removed successfully
+	delete current;
+	vortex_number--; // Decrease the vortex count
+	return 0;	 // Vertex removed successfully
 }
-
 
 // adds an edge between 2 vortexs to a graph, if the edge already exists, just update the weight of the edge
 int list_graph::add_edge(unsigned int vortex1, unsigned int vortex2, unsigned int weight)
@@ -504,7 +516,7 @@ int list_graph::search_shortest_distance_dijkstra(unsigned int base_vortex, unsi
 	unsigned int current_node = base_vortex;
 	unsigned int current_lower_distance;
 
-	while (!check_all_vortex_visited(visitable_vortexs) && distance_frombase[goal_vortex] != 0)
+	while (visitable_vortexs[goal_vortex] != 1)
 	{
 		reach_vortex(current_node, distance_frombase[current_node], distance_frombase);
 
@@ -532,12 +544,15 @@ int list_graph::search_shortest_distance_dijkstra(unsigned int base_vortex, unsi
 		visitable_vortexs[current_node] = 1;
 		current_lower_distance = numeric_limits<int>::max();
 
-		for (int i = 0; i < this->vortex_number; ++i)
+		if (visitable_vortexs[goal_vortex] != 1)
 		{
-			if (visitable_vortexs[i] == 0 && distance_frombase[i] < current_lower_distance)
+			for (int i = 0; i < this->vortex_number; ++i)
 			{
-				current_node = i;
-				current_lower_distance = distance_frombase[i];
+				if (visitable_vortexs[i] == 0 && distance_frombase[i] < current_lower_distance)
+				{
+					current_node = i;
+					current_lower_distance = distance_frombase[i];
+				}
 			}
 		}
 	}
