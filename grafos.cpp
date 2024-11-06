@@ -39,7 +39,7 @@ public:
 	void print_graph_edges();				 // function to print the current graph edges in a simple console format
 	int add_edge(unsigned int vortex1, unsigned int vortex2, unsigned int weight);    // creates an edge between 2 vortexs on this graph
 	void generate_random_edges(unsigned int cp_probability); // generate random edges on an already created graph, cp_probability is from 0 to 100, the more probability the more complete the graph is
-	int search_shortest_distance_djakstra(unsigned int base_vortex, unsigned int goal_vortex); // shortest paths between 2 vortexs using dijkstra
+	int search_shortest_distance_dijkstra(unsigned int base_vortex, unsigned int goal_vortex); // shortest paths between 2 vortexs using dijkstra
 	int *get_full_reachable_vortexs(int base_node); // returns a dynamic array of size this->vortex_number with the unreachable/reachable vortexs
 
 private:
@@ -319,36 +319,78 @@ int *list_graph::get_full_reachable_vortexs(int base_vortex)
 }
 
 //searchs the shortest distance between to vortex using dijkstra algorithm, returns -1 if goal vortex is unreachable
-int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsigned int goal_vortex)
+int list_graph::search_shortest_distance_dijkstra(unsigned int base_vortex, unsigned int goal_vortex)
 {
-	int *visitable_vortexs = get_full_reachable_vortexs(base_vortex); // put reachable nodes from base vortex to 0, and unreachable nodes to -1, reserved on heap memory
+	int *visitable_vortexs = get_full_reachable_vortexs(base_vortex);
 	if (visitable_vortexs[goal_vortex] == -1)
 	{
-		delete visitable_vortexs;
-		return -1; // goal vortex not reachable from base vortex, so we return error code
+		delete[] visitable_vortexs;
+		return -1; // Goal vortex not reachable
 	}
-	int *distance_frombase = new int[this->vortex_number];		      // distance to vortex from base vortex
-	for (int i = 0; i < this->vortex_number; distance_frombase[i++] = -1); // set -1 as infinite distance from base for starting case;
-	distance_frombase[base_vortex] = 0;	 // distance from base to base is obviusly 0
-	unsigned int current_node = base_vortex; // current node we are exploring
-	unsigned int current_lower_distance;     //lowest distance in a non visted node atm
+	int *distance_frombase = new int[this->vortex_number];
+	int *predecessor = new int[this->vortex_number]; // Array to track predecessors
 
-	while(!check_all_vortex_visited(visitable_vortexs) && distance_frombase[goal_vortex] != 0){
-		reach_vortex(current_node,distance_frombase[current_node],distance_frombase);
+	for (int i = 0; i < this->vortex_number; i++) {
+		distance_frombase[i] = -1;
+		predecessor[i] = -1; // Initialize predecessors to -1
+	}
+	distance_frombase[base_vortex] = 0;
+	unsigned int current_node = base_vortex;
+	unsigned int current_lower_distance;
+
+	while (!check_all_vortex_visited(visitable_vortexs) && distance_frombase[goal_vortex] != 0) {
+		reach_vortex(current_node, distance_frombase[current_node], distance_frombase);
+
+		// Update predecessors for undirected graph
+		vortex *current_vortex = this->graph_head;
+		for (int i = 0; i < current_node; ++i) current_vortex = current_vortex->next;
+		edge *current_edge = current_vortex->edge_ptr;
+
+		while (current_edge != nullptr) {
+			if (distance_frombase[current_edge->vortex_index] != -1 &&
+				distance_frombase[current_node] + current_edge->edge_weight == distance_frombase[current_edge->vortex_index]) {
+				// Update predecessor regardless of index order
+				predecessor[current_edge->vortex_index] = current_node;
+			}
+			if (distance_frombase[current_node] == distance_frombase[current_edge->vortex_index] + current_edge->edge_weight) {
+				predecessor[current_node] = current_edge->vortex_index;
+			}
+			current_edge = current_edge->next;
+		}
+
 		visitable_vortexs[current_node] = 1;
 		current_lower_distance = numeric_limits<int>::max();
-		for(int i = 0 ; i < this->vortex_number ; ++i){
-			if(visitable_vortexs[i] == 0 && distance_frombase[i] < current_lower_distance){
+
+		for (int i = 0; i < this->vortex_number; ++i) {
+			if (visitable_vortexs[i] == 0 && distance_frombase[i] < current_lower_distance) {
 				current_node = i;
 				current_lower_distance = distance_frombase[i];
 			}
 		}
 	}
 	current_lower_distance = distance_frombase[goal_vortex];
+
+	// Print the shortest path
+	if (current_lower_distance != numeric_limits<int>::max()) {
+		cout << "Shortest path from " << base_vortex << " to " << goal_vortex << ": ";
+		int trace_node = goal_vortex;
+		while (trace_node != -1) {
+			cout << trace_node;
+			trace_node = predecessor[trace_node];
+			if (trace_node != -1) cout << " <- ";
+		}
+		cout << endl;
+	} else {
+		cout << "No path from " << base_vortex << " to " << goal_vortex << " found." << endl;
+	}
+
 	delete[] visitable_vortexs;
 	delete[] distance_frombase;
+	delete[] predecessor;
 	return current_lower_distance;
 }
+
+
 
 //trivial testing main, atm just stupid machine
 int main()
@@ -357,16 +399,16 @@ int main()
 	const int graph_size = 6;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
-	migrafo.add_edge(0,1,1);
+	/*migrafo.add_edge(0,1,1);
 	migrafo.add_edge(3,1,1);
 	migrafo.add_edge(4,3,4);
-	migrafo.add_edge(4,5,7);
+	migrafo.add_edge(4,5,10);
 	migrafo.add_edge(0,2,7);
 	migrafo.add_edge(5,2,7);
-	migrafo.print_graph_edges();
+	migrafo.print_graph_edges();*/
 
-	/*
-	migrafo.generate_random_edges(20);
+	
+	migrafo.generate_random_edges(40);
 	migrafo.print_graph_edges();
 	int *ptr = migrafo.get_full_reachable_vortexs(0);
 
@@ -378,9 +420,9 @@ int main()
 		}
 	}
 
-	*/
+	
 
-	int distance = migrafo.search_shortest_distance_djakstra(0,5);
+	int distance = migrafo.search_shortest_distance_dijkstra(5,0);
 	
 	cout << "distance between base vortex and goal vortex is : " << distance << endl;
 	return 0;
