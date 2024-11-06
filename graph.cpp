@@ -1,4 +1,5 @@
 #include "graph.h"
+
 // Constructor implementation
 list_graph::list_graph(int vortex_number, string graph_name)
 {
@@ -119,6 +120,8 @@ void list_graph::remove_edge_private(vortex &Vortex, unsigned int vortex_index_t
 	delete current_edge;
 }
 
+
+
 // finds the reachable nodes from a base node in the current graph, expects an array initialized with -1, uses backtracking algorithm
 void list_graph::full_reachable_vortexs(int *ptr, unsigned int base_node)
 {
@@ -219,6 +222,70 @@ void list_graph::print_graph_edges()
 		} while (iterator_edge != nullptr);
 		iterator_vortex = iterator_vortex->next;
 	}
+}
+
+//adds a new vortex with an index
+int list_graph::add_vortex(unsigned int vortex_index) {
+    // Check if the vortex already exists in the graph
+    vortex* temp = graph_head;
+    while (temp != nullptr) {
+        if (temp->vortex_index == vortex_index) {
+            return -1;  // Vortex already exists
+        }
+        temp = temp->next;
+    }
+
+    // Create a new vortex and add it to the graph
+    vortex* new_vortex = new vortex;
+    new_vortex->vortex_index = vortex_index;
+    new_vortex->edge_ptr = nullptr;  // No edges initially
+    new_vortex->next = graph_head;  // Insert at the beginning of the list
+
+    // Update the head of the graph
+    graph_head = new_vortex;
+    vortex_number++;
+    return 0;  // Successfully added
+}
+
+int list_graph::remove_vortex(unsigned int vortex_index) {
+    vortex* current = graph_head;
+    vortex* previous = nullptr;
+
+    // Search for the vortex to remove
+    while (current != nullptr && current->vortex_index != vortex_index) {
+        previous = current;
+        current = current->next;
+    }
+
+    // If the vortex does not exist
+    if (current == nullptr) {
+        return -1;  // Vortex not found
+    }
+
+    // Remove all edges associated with this vortex
+    while (current->edge_ptr != nullptr) {
+        edge* temp_edge = current->edge_ptr;
+        current->edge_ptr = current->edge_ptr->next;
+        delete temp_edge;
+    }
+
+    // Remove any edges pointing to this vortex
+    vortex* temp = graph_head;
+    while (temp != nullptr) {
+        remove_edge_private(*temp, vortex_index);  // Remove edges from other vertices
+        temp = temp->next;
+    }
+
+    // Remove the vortex from the list
+    if (previous == nullptr) {
+        graph_head = current->next;  // Head is being removed
+    } else {
+        previous->next = current->next;
+    }
+
+    delete current;  // Free memory for the vortex
+    vortex_number--;
+    return 0;  // Successfully removed
 }
 
 // adds an edge between 2 vortexs to a graph, if the edge already exists, just update the weight of the edge
