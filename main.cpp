@@ -7,14 +7,15 @@ int main()
 	const int graph_size = 100;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
-	/*
+/*	
 	migrafo.add_edge(0, 1, 1);
 	migrafo.add_edge(3, 1, 1);
 	migrafo.add_edge(4, 3, 4);
 	migrafo.add_edge(4, 5, 1);
 	migrafo.add_edge(0, 2, 7);
 	migrafo.add_edge(5, 2, 7);
-	migrafo.print_graph_edges();*/
+	migrafo.print_graph_edges();
+*/
 
 	migrafo.generate_random_edges(1);
 	migrafo.print_graph_edges();
