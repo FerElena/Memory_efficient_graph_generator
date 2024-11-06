@@ -37,6 +37,7 @@ public:
 
 	void print_vortexnumber();
 	void print_graph_edges();				 // function to print the current graph edges in a simple console format
+	int add_edge(unsigned int vortex1, unsigned int vortex2, unsigned int weight);    // creates an edge between 2 vortexs on this graph
 	void generate_random_edges(unsigned int cp_probability); // generate random edges on an already created graph, cp_probability is from 0 to 100, the more probability the more complete the graph is
 	int search_shortest_distance_djakstra(unsigned int base_vortex, unsigned int goal_vortex); // shortest paths between 2 vortexs using dijkstra
 	int *get_full_reachable_vortexs(int base_node); // returns a dynamic array of size this->vortex_number with the unreachable/reachable vortexs
@@ -116,7 +117,7 @@ void list_graph::add_edge_private(vortex &Vortex, unsigned int vortex_index_to, 
 	new_edge->edge_weight = edge_weight;
 	new_edge->next = nullptr;
 
-	// If the vertex has no edges, simply add the new edge
+	// If the vortex has no edges, simply add the new edge
 	if (Vortex.edge_ptr == nullptr)
 	{
 		Vortex.edge_ptr = new_edge;
@@ -226,25 +227,7 @@ void list_graph::print_vortexnumber()
 	     << this->vortex_number << endl;
 }
 
-// Generates random edges on the graph
-void list_graph::generate_random_edges(unsigned int cp_probability)
-{
-	srand(time(0));
-	vortex *current_vortex = this->graph_head;
-	unsigned int random_int, edge_max = 0;
-	for (int i = 0; i < this->vortex_number; ++i)
-	{
-		for (int j = this->vortex_number - 1; j > edge_max; --j)
-		{
-			if ((rand() % 100) <= cp_probability)
-			{
-				add_edge_private((*current_vortex), j, (rand() % 9) +1);
-			}
-		}
-		current_vortex = current_vortex->next;
-		++edge_max;
-	}
-}
+
 
 // Prints in a readable format, the existing edges of an already created graph
 void list_graph::print_graph_edges()
@@ -266,6 +249,65 @@ void list_graph::print_graph_edges()
 	}
 }
 
+//adds an edge between 2 vortexs to a graph, if the edge already exists, just update the weight of the edge
+int list_graph::add_edge(unsigned int vortex1, unsigned int vortex2 , unsigned int weight){
+	if(vortex1 >=this->vortex_number || vortex2 >= this->vortex_number){
+		return -1; // vortex index does not exist on this graph, so nothing is done
+	}
+	unsigned int low_vortex,high_vortex;
+	if(vortex1 < vortex2){ // check which one is the lower index vortex
+		low_vortex = vortex1;
+		high_vortex = vortex2;
+	}
+	else if(vortex2 < vortex1){
+		low_vortex = vortex2;
+		high_vortex = vortex1;
+	}
+	else{
+		return -2; // you cannot add and edge to the same vortex as base and goal
+	}
+
+	vortex *iterator_vortex = this->graph_head;
+	edge *iterator_edge;
+	for(int i = 0 ; i < low_vortex ; i++){ // finds the vortex to add the edge
+		if(iterator_vortex->vortex_index == low_vortex){
+			break;
+		}
+		iterator_vortex = iterator_vortex->next;
+	}
+
+	iterator_edge = iterator_vortex->edge_ptr;
+	while(iterator_edge != nullptr){ // checks the edge does not already exists
+		if(iterator_edge->vortex_index == high_vortex){ // if edge already exists, update the weight 
+			iterator_edge->edge_weight = weight;
+			return 1;
+		}
+		iterator_edge = iterator_edge->next;
+	}
+
+	add_edge_private((*iterator_vortex),high_vortex,weight); // if the edge does not exists, add a new edge
+	return 1;
+}
+
+// Generates random edges on the graph
+void list_graph::generate_random_edges(unsigned int cp_probability)
+{
+	srand(time(0));
+	vortex *current_vortex = this->graph_head;
+	unsigned int random_int, edge_max = 0;
+	for (int i = 0; i < this->vortex_number; ++i)
+	{
+		for (int j = this->vortex_number - 1; j > edge_max; --j)
+		{
+			if ((rand() % 100) <= cp_probability)
+			{
+				add_edge_private((*current_vortex), j, (rand() % 9) +1);
+			}
+		}
+		current_vortex = current_vortex->next;
+		++edge_max;
+	}
+}
 // returns an array of size this->vortex_number with 0 on reachable nodes, and -1on unreachable from base_node
 int *list_graph::get_full_reachable_vortexs(int base_vortex) 
 { 
@@ -312,9 +354,18 @@ int list_graph::search_shortest_distance_djakstra(unsigned int base_vortex, unsi
 int main()
 {
 	cout << "Here goes the graph machine! \n";
-	const int graph_size = 10;
+	const int graph_size = 6;
 	list_graph migrafo(graph_size, "grafo1");
 	migrafo.print_vortexnumber();
+	migrafo.add_edge(0,1,1);
+	migrafo.add_edge(3,1,1);
+	migrafo.add_edge(4,3,4);
+	migrafo.add_edge(4,5,7);
+	migrafo.add_edge(0,2,7);
+	migrafo.add_edge(5,2,7);
+	migrafo.print_graph_edges();
+
+	/*
 	migrafo.generate_random_edges(20);
 	migrafo.print_graph_edges();
 	int *ptr = migrafo.get_full_reachable_vortexs(0);
@@ -326,6 +377,8 @@ int main()
 			cout << "vortex :" << i << " not accesible\n";
 		}
 	}
+
+	*/
 
 	int distance = migrafo.search_shortest_distance_djakstra(0,5);
 	
