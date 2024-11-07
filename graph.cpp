@@ -473,112 +473,105 @@ int *list_graph::get_full_reachable_vortexs(int base_vortex)
 }
 
 // This function implements Dijkstra's algorithm to find the shortest path in an undirected graph
-// from a starting vertex, base_vortex, to a target vertex, goal_vortex. The algorithm first retrieves
-// all vertices reachable from base_vortex using the get_full_reachable_vortexs function. If the
-// goal_vortex is not reachable, the function returns -1 to indicate this. Otherwise, it proceeds
-// to initialize two arrays: distance_frombase, which will store the minimum distances from base_vortex
-// to each vertex, and predecessor, which will track the preceding vertex in the shortest path for
-// each reachable vertex.
+// from a starting vertex, base_vortex, to a target vertex, goal_vortex. Unlike the previous version, 
+// this function no longer pre-checks reachability using an auxiliary function. Instead, it directly 
+// determines accessibility as it calculates the shortest paths.
 
-// The algorithm sets the distance_frombase of base_vortex to zero, indicating that the distance
-// from the start to itself is zero. It then iteratively searches for the next closest unvisited
-// vertex by checking all reachable vertices and choosing the one with the minimum distance that has
-// not been marked as visited. For each neighbor of the current node, if the current path forms a
-// shorter route to reach this neighbor than previously recorded in distance_frombase, it updates
-// both the neighbor’s minimum distance and sets the current node as the predecessor of this neighbor.
-// This updating process ensures that each node's predecessor represents the shortest path leading
-// back to base_vortex.
+// The algorithm initializes two main arrays: distance_frombase, which stores the minimum distances 
+// from base_vortex to each vertex (initialized to infinity), and predecessor, which tracks the preceding 
+// vertex in the shortest path for each reachable vertex. Additionally, a visited array marks nodes 
+// as they are fully processed to avoid redundant calculations.
 
-// The loop continues until all reachable vortexs are visited or the goal_vortex is reached, at
-// which point distance_frombase for goal_vortex reflects the shortest path length from base_vortex.
-// If the goal_vortex is reachable, the function reconstructs the shortest path by backtracking from
-// goal_vortex to base_vortex using the predecessor array, printing each vertex in reverse order.
+// Starting from base_vortex with a distance of zero, the function iteratively selects the unvisited 
+// vertex with the smallest known distance. For each neighbor of the current node, if the calculated 
+// path provides a shorter route than previously recorded, it updates both the neighbor's distance 
+// and sets the current node as its predecessor. This ensures that each node's predecessor represents 
+// the shortest path back to base_vortex.
 
-// Finally, the function cleans up allocated memory for visitable_vortexs, distance_frombase, and
-// predecessor arrays, and returns the shortest path distance from base_vortex to goal_vortex.
-int list_graph::search_shortest_distance_dijkstra(unsigned int base_vortex, unsigned int goal_vortex)
-{
-	int *visitable_vortexs = get_full_reachable_vortexs(base_vortex);
-	if (visitable_vortexs[goal_vortex] == -1)
-	{
-		delete[] visitable_vortexs;
-		return -1; // Goal vortex not reachable
-	}
-	int *distance_frombase = new int[this->vortex_number];
-	int *predecessor = new int[this->vortex_number]; // Array to track predecessors
+// The loop continues until either all reachable vertices are visited or the goal_vortex is reached. 
+// After completing the search, the algorithm checks if goal_vortex has a finite distance; if not, 
+// it returns -1, indicating that the goal_vortex is inaccessible from base_vortex. Otherwise, it 
+// backtracks from goal_vortex to base_vortex using the predecessor array, reconstructing and printing 
+// the shortest path.
 
-	for (int i = 0; i < this->vortex_number; i++)
-	{
-		distance_frombase[i] = -1;
-		predecessor[i] = -1; // Initialize predecessors to -1
-	}
-	distance_frombase[base_vortex] = 0;
-	unsigned int current_node = base_vortex;
-	unsigned int current_lower_distance;
+// Finally, the function frees the dynamically allocated memory for the distance_frombase, predecessor, 
+// and visited arrays and returns the shortest path distance from base_vortex to goal_vortex. If 
+// goal_vortex is inaccessible, the function returns -1.
 
-	while (visitable_vortexs[goal_vortex] != 1)
-	{
-		reach_vortex(current_node, distance_frombase[current_node], distance_frombase);
 
-		// Update predecessors for undirected graph
-		vortex *current_vortex = this->graph_head;
-		for (int i = 0; i < current_node; ++i)
-			current_vortex = current_vortex->next;
-		edge *current_edge = current_vortex->edge_ptr;
+int list_graph::search_shortest_distance_dijkstra(unsigned int base_vortex, unsigned int goal_vortex) {
+    int *distance_frombase = new int[this->vortex_number];
+    int *predecessor = new int[this->vortex_number]; // Array to track predecessors
+    bool *visited = new bool[this->vortex_number](); // Track visited nodes
 
-		while (current_edge != nullptr)
-		{
-			if (distance_frombase[current_edge->vortex_index] != -1 &&
-			    distance_frombase[current_node] + current_edge->edge_weight == distance_frombase[current_edge->vortex_index])
-			{
-				// Update predecessor regardless of index order
-				predecessor[current_edge->vortex_index] = current_node;
-			}
-			if (distance_frombase[current_node] == distance_frombase[current_edge->vortex_index] + current_edge->edge_weight)
-			{
-				predecessor[current_node] = current_edge->vortex_index;
-			}
-			current_edge = current_edge->next;
-		}
+    for (int i = 0; i < this->vortex_number; i++) {
+        distance_frombase[i] = numeric_limits<int>::max(); // Initial distance to infinity
+        predecessor[i] = -1; // Initialize predecessors to -1
+    }
+    distance_frombase[base_vortex] = 0;
 
-		visitable_vortexs[current_node] = 1;
-		current_lower_distance = numeric_limits<int>::max();
+    unsigned int current_node = base_vortex;
+    unsigned int current_lower_distance;
 
-		if (visitable_vortexs[goal_vortex] != 1)
-		{
-			for (int i = 0; i < this->vortex_number; ++i)
-			{
-				if (visitable_vortexs[i] == 0 && distance_frombase[i] < current_lower_distance)
-				{
-					current_node = i;
-					current_lower_distance = distance_frombase[i];
-				}
-			}
-		}
-	}
-	current_lower_distance = distance_frombase[goal_vortex];
+    while (true) {
+        reach_vortex(current_node, distance_frombase[current_node], distance_frombase);
 
-	// Print the shortest path
-	if (current_lower_distance != numeric_limits<int>::max())
-	{
-		cout << "Shortest path from " << base_vortex << " to " << goal_vortex << ": ";
-		int trace_node = goal_vortex;
-		while (trace_node != -1)
-		{
-			cout << trace_node;
-			trace_node = predecessor[trace_node];
-			if (trace_node != -1)
-				cout << " <- ";
-		}
-		cout << endl;
-	}
-	else
-	{
-		cout << "No path from " << base_vortex << " to " << goal_vortex << " found." << endl;
-	}
+        // Update predecessors for undirected graph
+        vortex *current_vortex = this->graph_head;
+        for (int i = 0; i < current_node; ++i)
+            current_vortex = current_vortex->next;
+        edge *current_edge = current_vortex->edge_ptr;
 
-	delete[] visitable_vortexs;
-	delete[] distance_frombase;
-	delete[] predecessor;
-	return current_lower_distance;
+        while (current_edge != nullptr) {
+            if (distance_frombase[current_edge->vortex_index] != numeric_limits<int>::max() &&
+                distance_frombase[current_node] + current_edge->edge_weight == distance_frombase[current_edge->vortex_index]) {
+                predecessor[current_edge->vortex_index] = current_node;
+            }
+            if (distance_frombase[current_node] == distance_frombase[current_edge->vortex_index] + current_edge->edge_weight) {
+                predecessor[current_node] = current_edge->vortex_index;
+            }
+            current_edge = current_edge->next;
+        }
+
+        visited[current_node] = true;
+
+        if (current_node == goal_vortex || distance_frombase[current_node] == numeric_limits<int>::max()) {
+            break; // Exit if reached the goal or no further reachable nodes
+        }
+
+        // Find the unvisited node with the smallest distance
+        current_lower_distance = numeric_limits<int>::max();
+        for (int i = 0; i < this->vortex_number; ++i) {
+            if (!visited[i] && distance_frombase[i] < current_lower_distance) {
+                current_node = i;
+                current_lower_distance = distance_frombase[i];
+            }
+        }
+        
+        if (current_lower_distance == numeric_limits<int>::max()) {
+            break; // If no unvisited nodes with finite distance, exit
+        }
+    }
+
+    current_lower_distance = distance_frombase[goal_vortex];
+
+    // Print the shortest path if reachable
+    if (current_lower_distance != numeric_limits<int>::max()) {
+        cout << "Shortest path from " << base_vortex << " to " << goal_vortex << ": ";
+        int trace_node = goal_vortex;
+        while (trace_node != -1) {
+            cout << trace_node;
+            trace_node = predecessor[trace_node];
+            if (trace_node != -1)
+                cout << " <- ";
+        }
+        cout << endl;
+    } else {
+        cout << "No path from " << base_vortex << " to " << goal_vortex << " found." << endl;
+    }
+
+    delete[] distance_frombase;
+    delete[] predecessor;
+    delete[] visited;
+    return current_lower_distance != numeric_limits<int>::max() ? current_lower_distance : -1;
 }

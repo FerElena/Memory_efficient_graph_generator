@@ -19,6 +19,7 @@ int main()
 
 	migrafo.generate_random_edges(1);
 	migrafo.print_graph_edges();
+	
 	int *ptr = migrafo.get_full_reachable_vortexs(0);
 
 	for (int i = 0; i < graph_size; i++)
