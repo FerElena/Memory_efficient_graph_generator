@@ -472,11 +472,6 @@ int *list_graph::get_full_reachable_vortexs(int base_vortex)
 	return ptr;
 }
 
-// This function implements Dijkstra's algorithm to find the shortest path in an undirected graph
-// from a starting vertex, base_vortex, to a target vertex, goal_vortex. Unlike the previous version, 
-// this function no longer pre-checks reachability using an auxiliary function. Instead, it directly 
-// determines accessibility as it calculates the shortest paths.
-
 // The algorithm initializes two main arrays: distance_frombase, which stores the minimum distances 
 // from base_vortex to each vertex (initialized to infinity), and predecessor, which tracks the preceding 
 // vertex in the shortest path for each reachable vertex. Additionally, a visited array marks nodes 
